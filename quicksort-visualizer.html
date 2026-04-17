@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Sort Visualizer — DSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a23;
+    --surface2: #1e2330;
+    --border: rgba(255,255,255,0.08);
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --pivot: #f59e0b;
+    --pivot-bg: rgba(245,158,11,0.12);
+    --i-color: #38bdf8;
+    --i-bg: rgba(56,189,248,0.12);
+    --j-color: #c084fc;
+    --j-bg: rgba(192,132,252,0.12);
+    --sorted: #34d399;
+    --sorted-bg: rgba(52,211,153,0.12);
+    --swap: #f87171;
+    --default-bar: #2a3042;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--surface);
+  }
+  .logo {
+    width: 36px; height: 36px;
+    background: var(--pivot);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: #0d0f14;
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  header p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .tag {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--pivot);
+    background: var(--pivot-bg);
+    border: 1px solid rgba(245,158,11,0.3);
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+
+  /* ── Layout ── */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; padding: 1rem; }
+  }
+
+  /* ── Viz Panel ── */
+  .viz-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  /* ── Bars ── */
+  #bar-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 200px;
+    padding: 0 2px;
+  }
+
+  .bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    transition: height 0.25s cubic-bezier(.4,0,.2,1), background 0.2s;
+    min-width: 0;
+  }
+  .bar-val {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-family: var(--mono);
+    font-weight: 700;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+  .bar-idx {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+
+  /* ── Step info ── */
+  .step-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-size: 13.5px;
+    line-height: 1.65;
+    min-height: 56px;
+    color: var(--text);
+  }
+  .step-box strong { color: var(--pivot); }
+  .step-box .ok { color: var(--sorted); }
+  .step-box .no { color: var(--swap); }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface); border-color: rgba(255,255,255,0.18); }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+  .btn-primary { background: var(--pivot); color: #0d0f14; border-color: transparent; font-weight: 600; }
+  .btn-primary:hover { background: #fbbf24; }
+  .btn-primary:disabled { background: var(--surface2); color: var(--muted); }
+
+  select {
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    outline: none;
+    width: 120px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--pivot);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--pivot);
+    border-radius: 2px;
+    transition: width 0.2s;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+  }
+
+  /* ── Right: Pseudocode + Info ── */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* ── Pseudocode ── */
+  .pseudo-block {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.85;
+    color: #8892a4;
+  }
+  .pseudo-line {
+    display: block;
+    padding: 1px 8px;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+    white-space: pre;
+  }
+  .pseudo-line.active {
+    background: rgba(245,158,11,0.15);
+    color: var(--pivot);
+  }
+  .pseudo-kw { color: #c084fc; }
+  .pseudo-fn { color: #38bdf8; }
+  .pseudo-cm { color: #4b5563; font-style: italic; }
+  .pseudo-num { color: #34d399; }
+
+  /* ── Complexity ── */
+  .complexity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .cbox {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .cbox-label { font-size: 10px; color: var(--muted); font-family: var(--mono); letter-spacing: 0.05em; }
+  .cbox-val {
+    font-size: 16px;
+    font-family: var(--mono);
+    font-weight: 700;
+    margin-top: 3px;
+  }
+  .cbox-val.green { color: var(--sorted); }
+  .cbox-val.amber { color: var(--pivot); }
+  .cbox-val.red { color: var(--swap); }
+  .cbox-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Stats ── */
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-val { font-family: var(--mono); color: var(--pivot); font-weight: 700; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">QS</div>
+  <div>
+    <h1>Quick Sort Visualizer</h1>
+    <p>Data Structures &amp; Algorithms — Interactive Demo</p>
+  </div>
+  <span class="tag">O(n log n)</span>
+</header>
+
+<main>
+  <!-- Left: Visualizer -->
+  <div class="viz-panel">
+
+    <div class="panel">
+      <div class="panel-title">Biểu đồ mảng</div>
+      <div id="bar-container"></div>
+      <div style="height: 22px;"></div>
+      <div class="progress-wrap">
+        <span id="step-count" style="min-width:80px">Bước 0 / 0</span>
+        <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Trạng thái hiện tại</div>
+      <div class="step-box" id="step-info">Nhấn <strong>Bước tiếp</strong> để bắt đầu từng bước, hoặc <strong>Chạy tự động</strong> để xem toàn bộ.</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Điều khiển</div>
+      <div class="controls">
+        <button class="btn" id="btn-shuffle">🔀 Mảng mới</button>
+        <button class="btn" id="btn-reset">↺ Reset</button>
+        <button class="btn btn-primary" id="btn-step">▶ Bước tiếp</button>
+        <button class="btn" id="btn-auto">⚡ Chạy tự động</button>
+        <select id="sel-size">
+          <option value="8">8 phần tử</option>
+          <option value="12" selected>12 phần tử</option>
+          <option value="16">16 phần tử</option>
+          <option value="20">20 phần tử</option>
+        </select>
+      </div>
+      <div class="speed-row" style="margin-top:12px">
+        <span>Tốc độ:</span>
+        <input type="range" min="100" max="1400" value="700" id="speed-slider">
+        <span id="speed-label">vừa</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Chú thích màu</div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot" style="background:var(--pivot)"></div>Pivot (chốt)</div>
+        <div class="legend-item"><div class="dot" style="background:var(--i-color)"></div>Con trỏ i (ranh giới)</div>
+        <div class="legend-item"><div class="dot" style="background:var(--j-color)"></div>Con trỏ j (đang xét)</div>
+        <div class="legend-item"><div class="dot" style="background:var(--swap)"></div>Đang hoán đổi</div>
+        <div class="legend-item"><div class="dot" style="background:var(--sorted)"></div>Đã đúng vị trí</div>
+        <div class="legend-item"><div class="dot" style="background:var(--default-bar)"></div>Chưa xử lý</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right: Code + Info -->
+  <div class="right-panel">
+
+    <div class="panel">
+      <div class="panel-title">Pseudocode</div>
+      <div class="pseudo-block">
+        <span class="pseudo-line" id="ps1"><span class="pseudo-kw">function</span> <span class="pseudo-fn">quickSort</span>(arr, lo, hi):</span>
+        <span class="pseudo-line" id="ps2">  <span class="pseudo-kw">if</span> lo &lt; hi:</span>
+        <span class="pseudo-line" id="ps3">    p = <span class="pseudo-fn">partition</span>(arr, lo, hi)</span>
+        <span class="pseudo-line" id="ps4">    <span class="pseudo-fn">quickSort</span>(arr, lo, p<span class="pseudo-num">-1</span>)</span>
+        <span class="pseudo-line" id="ps5">    <span class="pseudo-fn">quickSort</span>(arr, p<span class="pseudo-num">+1</span>, hi)</span>
+        <span class="pseudo-line" id="ps6">&nbsp;</span>
+        <span class="pseudo-line" id="ps7"><span class="pseudo-kw">function</span> <span class="pseudo-fn">partition</span>(arr, lo, hi):</span>
+        <span class="pseudo-line" id="ps8">  pivot = arr[hi] <span class="pseudo-cm">// chọn phần tử cuối</span></span>
+        <span class="pseudo-line" id="ps9">  i = lo <span class="pseudo-num">- 1</span>     <span class="pseudo-cm">// ranh giới vùng nhỏ</span></span>
+        <span class="pseudo-line" id="ps10">  <span class="pseudo-kw">for</span> j = lo <span class="pseudo-kw">to</span> hi<span class="pseudo-num">-1</span>:</span>
+        <span class="pseudo-line" id="ps11">    <span class="pseudo-kw">if</span> arr[j] &lt;= pivot:</span>
+        <span class="pseudo-line" id="ps12">      i++</span>
+        <span class="pseudo-line" id="ps13">      swap(arr[i], arr[j])</span>
+        <span class="pseudo-line" id="ps14">  swap(arr[i<span class="pseudo-num">+1</span>], arr[hi])</span>
+        <span class="pseudo-line" id="ps15">  <span class="pseudo-kw">return</span> i<span class="pseudo-num">+1</span></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Độ phức tạp</div>
+      <div class="complexity-grid">
+        <div class="cbox">
+          <div class="cbox-label">TRUNG BÌNH</div>
+          <div class="cbox-val green">O(n log n)</div>
+          <div class="cbox-sub">Pivot chia đều 2 bên</div>
+        </div>
+        <div class="cbox">
+          <div class="cbox-label">TỐT NHẤT</div>
+          <div class="cbox-val green">O(n log n)</div>
+          <div class="cbox-sub">Pivot luôn ở giữa</div>
+        </div>
+        <div class="cbox">
+          <div class="cbox-label">XẤU NHẤT</div>
+          <div class="cbox-val red">O(n²)</div>
+          <div class="cbox-sub">Mảng đã sắp xếp</div>
+        </div>
+        <div class="cbox">
+          <div class="cbox-label">BỘ NHỚ</div>
+          <div class="cbox-val amber">O(log n)</div>
+          <div class="cbox-sub">Stack đệ quy</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Thống kê lần chạy</div>
+      <div class="stat-row">
+        <span>Số phép so sánh</span>
+        <span class="stat-val" id="stat-cmp">0</span>
+      </div>
+      <div class="stat-row">
+        <span>Số lần hoán đổi</span>
+        <span class="stat-val" id="stat-swap">0</span>
+      </div>
+      <div class="stat-row">
+        <span>Tổng bước</span>
+        <span class="stat-val" id="stat-total">0</span>
+      </div>
+      <div class="stat-row">
+        <span>Tiến độ</span>
+        <span class="stat-val" id="stat-prog">0%</span>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  Quick Sort Visualizer · DSA Interactive · Dùng cho mục đích học tập
+</footer>
+
+<script>
+const PS_MAP = {
+  pivot:'ps8', loop:'ps10', compare:'ps11', swap_i:'ps12', swap_arr:'ps13',
+  place:'ps14', rec_left:'ps4', rec_right:'ps5', done:''
+};
+const ALL_PS = ['ps1','ps2','ps3','ps4','ps5','ps7','ps8','ps9','ps10','ps11','ps12','ps13','ps14','ps15'];
+
+let arr=[], steps=[], stepIdx=0, autoTimer=null, N=12;
+let cmpCount=0, swapCount=0;
+
+function randArr(n){
+  const a=[];
+  while(a.length<n){ const v=Math.floor(Math.random()*85)+10; if(!a.includes(v)) a.push(v); }
+  return a;
+}
+
+function generateSteps(input){
+  const a=[...input], steps=[], sorted=new Set();
+  let cmp=0, swp=0;
+
+  function qs(lo,hi){
+    if(lo>=hi){ if(lo===hi) sorted.add(lo); return; }
+    const hi_val=a[hi];
+    steps.push({type:'pivot',arr:[...a],pivot:hi,lo,hi,sorted:new Set(sorted),
+      msg:`Vùng [<strong>${lo}..${hi}]</strong> — Chọn pivot = <strong>${hi_val}</strong> (arr[${hi}])`,ps:'ps8'});
+    let i=lo-1;
+    for(let j=lo;j<hi;j++){
+      cmp++;
+      const ok=a[j]<=hi_val;
+      steps.push({type:'compare',arr:[...a],pivot:hi,i,j,lo,hi,sorted:new Set(sorted),
+        msg:`So sánh arr[<strong>${j}]=${a[j]}</strong> với pivot <strong>${hi_val}</strong>: ${ok?'<span class="ok">✅ ≤ pivot → tiến i, swap</span>':'<span class="no">❌ > pivot → bỏ qua</span>'}`,
+        ps:'ps11',cmp,swp});
+      if(ok){
+        i++;
+        if(i!==j){
+          swp++;
+          [a[i],a[j]]=[a[j],a[i]];
+          steps.push({type:'swap',arr:[...a],pivot:hi,i,j,lo,hi,sorted:new Set(sorted),
+            msg:`Swap arr[<strong>${i}]=${a[i]}</strong> ↔ arr[<strong>${j}]=${a[j]}</strong>`,ps:'ps13',cmp,swp});
+        } else {
+          steps.push({type:'inc',arr:[...a],pivot:hi,i,j,lo,hi,sorted:new Set(sorted),
+            msg:`arr[${j}]=${a[j]} ≤ pivot → i tăng lên <strong>${i}</strong> (không cần swap)`,ps:'ps12',cmp,swp});
+        }
+      }
+    }
+    const pi=i+1;
+    swp++;
+    [a[pi],a[hi]]=[a[hi],a[pi]];
+    sorted.add(pi);
+    steps.push({type:'place',arr:[...a],pivot:pi,lo,hi,sorted:new Set(sorted),
+      msg:`Đặt pivot <strong>${a[pi]}</strong> vào đúng vị trí <strong>${pi}</strong>. Trái ≤ ${a[pi]}, Phải ≥ ${a[pi]}`,ps:'ps14',cmp,swp});
+    qs(lo,pi-1); qs(pi+1,hi);
+  }
+  qs(0,a.length-1);
+  const finalSorted=new Set([...Array(a.length).keys()]);
+  steps.push({type:'done',arr:[...a],sorted:finalSorted,
+    msg:'<span class="ok">✅ Mảng đã được sắp xếp hoàn toàn!</span>',ps:'',cmp,swp});
+  return steps;
+}
+
+function renderBars(step){
+  const container=document.getElementById('bar-container');
+  const maxV=Math.max(...step.arr);
+  container.innerHTML='';
+  step.arr.forEach((v,idx)=>{
+    const div=document.createElement('div');
+    div.className='bar';
+    let bg='var(--default-bar)', valColor='#4b5563';
+    const isSorted=step.sorted&&step.sorted.has(idx);
+    if(isSorted){ bg='var(--sorted)'; valColor='var(--sorted)'; }
+    if(step.pivot===idx){ bg='var(--pivot)'; valColor='var(--pivot)'; }
+    if(step.i===idx&&step.type!=='place'&&!isSorted){ bg='var(--i-color)'; valColor='var(--i-color)'; }
+    if(step.j===idx){ bg='var(--j-color)'; valColor='var(--j-color)'; }
+    if((step.type==='swap')&&(idx===step.i||idx===step.j)){ bg='var(--swap)'; valColor='var(--swap)'; }
+    const h=Math.max(16,Math.round(v/maxV*180));
+    div.style.cssText=`height:${h}px;background:${bg};`;
+    const val=document.createElement('span'); val.className='bar-val'; val.style.color=valColor; val.textContent=v;
+    const lbl=document.createElement('span'); lbl.className='bar-idx'; lbl.textContent=idx;
+    div.appendChild(val); div.appendChild(lbl);
+    container.appendChild(div);
+  });
+
+  document.getElementById('step-info').innerHTML=step.msg||'';
+
+  ALL_PS.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  if(step.ps){ const el=document.getElementById(step.ps); if(el) el.classList.add('active'); }
+
+  const total=steps.length;
+  const pct=total>0?Math.round((stepIdx/total)*100):0;
+  document.getElementById('step-count').textContent=`Bước ${stepIdx} / ${total}`;
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('stat-prog').textContent=pct+'%';
+  if(step.cmp!=null) document.getElementById('stat-cmp').textContent=step.cmp;
+  if(step.swp!=null) document.getElementById('stat-swap').textContent=step.swp;
+}
+
+function init(keepArr){
+  N=parseInt(document.getElementById('sel-size').value);
+  if(!keepArr) arr=randArr(N);
+  steps=generateSteps(arr); stepIdx=0;
+  document.getElementById('stat-total').textContent=steps.length;
+  document.getElementById('stat-cmp').textContent='0';
+  document.getElementById('stat-swap').textContent='0';
+  renderBars({arr:[...arr],sorted:new Set(),msg:'Mảng ban đầu. Nhấn <strong>Bước tiếp ▶</strong> để bắt đầu.',ps:''});
+  document.getElementById('btn-step').disabled=false;
+  document.getElementById('btn-auto').disabled=false;
+  stopAuto();
+}
+
+function nextStep(){
+  if(stepIdx>=steps.length){ document.getElementById('btn-step').disabled=true; stopAuto(); return; }
+  renderBars(steps[stepIdx++]);
+}
+
+function stopAuto(){
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;}
+  document.getElementById('btn-auto').textContent='⚡ Chạy tự động';
+}
+
+document.getElementById('btn-shuffle').onclick=()=>init(false);
+document.getElementById('btn-reset').onclick=()=>init(true);
+document.getElementById('sel-size').onchange=()=>init(false);
+document.getElementById('btn-step').onclick=nextStep;
+document.getElementById('btn-auto').onclick=function(){
+  if(autoTimer){ stopAuto(); return; }
+  this.textContent='⏸ Dừng';
+  const getDelay=()=>1800-parseInt(document.getElementById('speed-slider').value);
+  autoTimer=setInterval(()=>{
+    if(stepIdx>=steps.length){stopAuto();return;}
+    nextStep();
+  },getDelay());
+};
+document.getElementById('speed-slider').oninput=function(){
+  const v=parseInt(this.value);
+  document.getElementById('speed-label').textContent=v<500?'chậm':v<1000?'vừa':'nhanh';
+  if(autoTimer){ stopAuto(); document.getElementById('btn-auto').click(); }
+};
+
+init(false);
+</script>
+</body>
+</html>
