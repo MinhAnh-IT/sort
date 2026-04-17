@@ -42,6 +42,16 @@
     <div class="panel">
       <div class="panel-title">Biểu đồ mảng</div>
       <div id="bar-container" role="img" aria-label="Biểu đồ cột hiển thị mảng"></div>
+      <div class="legend-container">
+        <div class="legend">
+          <div class="legend-item"><div class="dot" style="background:var(--pivot)"></div>Pivot (chốt)</div>
+          <div class="legend-item"><div class="dot" style="background:var(--i-color)"></div>Con trỏ i (ranh giới)</div>
+          <div class="legend-item"><div class="dot" style="background:var(--j-color)"></div>Con trỏ j (đang xét)</div>
+          <div class="legend-item"><div class="dot" style="background:var(--swap)"></div>Đang hoán đổi</div>
+          <div class="legend-item"><div class="dot" style="background:var(--sorted)"></div>Đã đúng vị trí</div>
+          <div class="legend-item"><div class="dot" style="background:var(--default-bar)"></div>Chưa xử lý</div>
+        </div>
+      </div>
       <div style="height: 30px;"></div>
       <div class="progress-wrap">
         <span id="step-count" style="min-width:110px">Bước 0 / 0</span>
@@ -82,18 +92,6 @@
         <label for="speed-slider">Tốc độ:</label>
         <input type="range" min="100" max="1400" value="700" id="speed-slider" aria-label="Tốc độ chạy tự động">
         <span id="speed-label">vừa</span>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">Chú thích màu</div>
-      <div class="legend">
-        <div class="legend-item"><div class="dot" style="background:var(--pivot)"></div>Pivot (chốt)</div>
-        <div class="legend-item"><div class="dot" style="background:var(--i-color)"></div>Con trỏ i (ranh giới)</div>
-        <div class="legend-item"><div class="dot" style="background:var(--j-color)"></div>Con trỏ j (đang xét)</div>
-        <div class="legend-item"><div class="dot" style="background:var(--swap)"></div>Đang hoán đổi</div>
-        <div class="legend-item"><div class="dot" style="background:var(--sorted)"></div>Đã đúng vị trí</div>
-        <div class="legend-item"><div class="dot" style="background:var(--default-bar)"></div>Chưa xử lý</div>
       </div>
     </div>
 

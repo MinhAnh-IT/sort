@@ -34,7 +34,7 @@ body {
 
 /* ── Header ── */
 header {
-  padding: 1.75rem 2.5rem;
+  padding: 1.5rem 2.5rem;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -42,23 +42,23 @@ header {
   background: var(--surface);
 }
 .logo {
-  width: 48px; height: 48px;
+  width: 44px; height: 44px;
   background: var(--pivot);
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--mono);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 17px;
   color: #0d0f14;
   flex-shrink: 0;
 }
 header h1 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: 0.01em;
 }
 header p {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--muted);
   margin-top: 2px;
 }
@@ -77,16 +77,24 @@ header p {
 main {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 440px;
-  max-width: 1600px;
+  grid-template-columns: 1fr 480px;
+  max-width: 1800px;
   width: 100%;
   margin: 0 auto;
-  padding: 2.5rem;
+  padding: 2rem 2.5rem;
   gap: 2rem;
 }
 
-@media (max-width: 900px) {
-  main { grid-template-columns: 1fr; padding: 1rem; }
+@media (max-width: 1200px) {
+  main {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  main { padding: 1rem; }
   header { padding: 1rem; }
 }
 
@@ -101,8 +109,8 @@ main {
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.5rem 1.75rem;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
 }
 
 .panel-title {
@@ -188,9 +196,9 @@ main {
 #bar-container {
   display: flex;
   align-items: flex-end;
-  gap: 7px;
-  height: 360px;
-  padding: 90px 4px 0;
+  gap: 6px;
+  height: 320px;
+  padding: 80px 4px 0;
   position: relative;
 }
 
@@ -390,21 +398,29 @@ input[type=range]::-moz-range-thumb {
 }
 
 /* ── Legend ── */
+.legend-container {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 22px;
+  justify-content: center;
+  gap: 1rem 2rem;
+  font-size: 14px;
 }
 .legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
   color: var(--muted);
 }
 .dot {
-  width: 13px; height: 13px;
-  border-radius: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 /* ── Right: Pseudocode + Info ── */
