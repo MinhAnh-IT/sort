@@ -17,6 +17,7 @@ const el = {
   stack: $('call-stack'),
   btnShuffle: $('btn-shuffle'),
   btnReset: $('btn-reset'),
+  btnPrev: $('btn-prev'),
   btnStep: $('btn-step'),
   btnAuto: $('btn-auto'),
   selSize: $('sel-size'),
@@ -206,6 +207,9 @@ function renderStack(step) {
 function renderBars(step) {
   const maxV = Math.max(...step.arr);
   el.bars.innerHTML = '';
+  const showI = step.i != null && step.type !== 'place';
+  const showJ = step.j != null;
+  const showP = step.pivot != null;
   step.arr.forEach((v, idx) => {
     const div = document.createElement('div');
     div.className = 'bar';
@@ -219,6 +223,24 @@ function renderBars(step) {
     if (step.type === 'swap' && (idx === step.i || idx === step.j)) { bg = 'var(--swap)'; valColor = 'var(--swap)'; }
     const h = Math.max(16, Math.round(v / maxV * 180));
     div.style.cssText = `height:${h}px;background:${bg};`;
+
+    const markers = [];
+    if (showP && step.pivot === idx) {
+      markers.push(`<span class="marker marker-p">pivot=${idx}<span class="marker-arrow">▼</span></span>`);
+    }
+    if (showI && step.i === idx) {
+      markers.push(`<span class="marker marker-i">i=${idx}<span class="marker-arrow">▼</span></span>`);
+    }
+    if (showJ && step.j === idx) {
+      markers.push(`<span class="marker marker-j">j=${idx}<span class="marker-arrow">▼</span></span>`);
+    }
+    if (markers.length > 0) {
+      const m = document.createElement('div');
+      m.className = 'bar-markers';
+      m.innerHTML = markers.join('');
+      div.appendChild(m);
+    }
+
     const val = document.createElement('span');
     val.className = 'bar-val';
     val.style.color = valColor;
@@ -230,6 +252,13 @@ function renderBars(step) {
     div.appendChild(lbl);
     el.bars.appendChild(div);
   });
+
+  if (showI && step.i < 0) {
+    const off = document.createElement('div');
+    off.className = 'bar-off-marker';
+    off.innerHTML = `<span class="marker marker-i">i=${step.i} <span class="marker-note">(trước lo)</span></span>`;
+    el.bars.appendChild(off);
+  }
 
   el.stepInfo.innerHTML = step.msg || '';
   renderStack(step);
@@ -256,14 +285,7 @@ function renderBars(step) {
   }
 }
 
-function init(keepArr) {
-  const n = parseInt(el.selSize.value, 10);
-  if (!keepArr) arr = randArr(n);
-  steps = generateSteps(arr);
-  stepIdx = 0;
-  el.statTotal.textContent = steps.length;
-  el.statCmp.textContent = '0';
-  el.statSwap.textContent = '0';
+function renderInitial() {
   renderBars({
     arr: [...arr],
     sorted: new Set(),
@@ -272,18 +294,44 @@ function init(keepArr) {
     msg: 'Mảng ban đầu. Nhấn <strong>Bước tiếp ▶</strong> để bắt đầu.',
     ps: '',
   });
-  el.btnStep.disabled = false;
+}
+
+function updateNavButtons() {
+  el.btnPrev.disabled = stepIdx <= 0;
+  el.btnStep.disabled = stepIdx >= steps.length;
+}
+
+function init(keepArr) {
+  const n = parseInt(el.selSize.value, 10);
+  if (!keepArr) arr = randArr(n);
+  steps = generateSteps(arr);
+  stepIdx = 0;
+  el.statTotal.textContent = steps.length;
+  el.statCmp.textContent = '0';
+  el.statSwap.textContent = '0';
+  renderInitial();
   el.btnAuto.disabled = false;
+  updateNavButtons();
   stopAuto();
 }
 
 function nextStep() {
   if (stepIdx >= steps.length) {
-    el.btnStep.disabled = true;
     stopAuto();
+    updateNavButtons();
     return;
   }
   renderBars(steps[stepIdx++]);
+  updateNavButtons();
+}
+
+function prevStep() {
+  if (stepIdx <= 0) { updateNavButtons(); return; }
+  stopAuto();
+  stepIdx--;
+  if (stepIdx === 0) renderInitial();
+  else renderBars(steps[stepIdx - 1]);
+  updateNavButtons();
 }
 
 function stopAuto() {
@@ -307,6 +355,7 @@ el.btnShuffle.addEventListener('click', () => init(false));
 el.btnReset.addEventListener('click', () => init(true));
 el.selSize.addEventListener('change', () => init(false));
 el.btnStep.addEventListener('click', nextStep);
+el.btnPrev.addEventListener('click', prevStep);
 el.btnAuto.addEventListener('click', () => {
   if (autoTimer) { stopAuto(); return; }
   startAuto();
@@ -322,6 +371,9 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'Space' || e.key === 'ArrowRight') {
     e.preventDefault();
     nextStep();
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    prevStep();
   } else if (e.key === 'r' || e.key === 'R') {
     init(true);
   } else if (e.key === 'n' || e.key === 'N') {

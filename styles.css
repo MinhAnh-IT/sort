@@ -189,8 +189,9 @@ main {
   display: flex;
   align-items: flex-end;
   gap: 7px;
-  height: 300px;
-  padding: 0 4px;
+  height: 360px;
+  padding: 90px 4px 0;
+  position: relative;
 }
 
 .bar {
@@ -222,9 +223,59 @@ main {
   white-space: nowrap;
 }
 
+/* ── Pointer markers (pivot / i / j) above bars ── */
+.bar-markers {
+  position: absolute;
+  bottom: calc(100% + 26px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+.marker {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  line-height: 1;
+  border: 1.5px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.marker-arrow {
+  font-size: 9px;
+  line-height: 1;
+  margin-top: 1px;
+}
+.marker-note {
+  font-size: 9px;
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.8;
+}
+.marker-p { color: var(--pivot); background: var(--pivot-bg); border-color: var(--pivot); }
+.marker-i { color: var(--i-color); background: var(--i-bg); border-color: var(--i-color); }
+.marker-j { color: var(--j-color); background: var(--j-bg); border-color: var(--j-color); }
+
+.bar-off-marker {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+}
+
 @media (max-width: 500px) {
-  #bar-container { gap: 4px; height: 220px; }
+  #bar-container { gap: 4px; height: 280px; padding-top: 80px; }
   .bar-val, .bar-idx { font-size: 11px; }
+  .marker { font-size: 10px; padding: 2px 5px; }
 }
 
 /* ── Step info ── */
