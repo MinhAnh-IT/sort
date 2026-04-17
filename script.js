@@ -1,6 +1,6 @@
 'use strict';
 
-const ALL_PS = ['ps1', 'ps2', 'ps3', 'ps4', 'ps5', 'ps7', 'ps8', 'ps9', 'ps10', 'ps11', 'ps12', 'ps13', 'ps14', 'ps15'];
+const ALL_PS = Array.from({ length: 20 }, (_, i) => `ps${i + 1}`);
 
 const $ = (id) => document.getElementById(id);
 
@@ -13,6 +13,8 @@ const el = {
   statSwap: $('stat-swap'),
   statTotal: $('stat-total'),
   statProg: $('stat-prog'),
+  statDepth: $('stat-depth'),
+  stack: $('call-stack'),
   btnShuffle: $('btn-shuffle'),
   btnReset: $('btn-reset'),
   btnStep: $('btn-step'),
@@ -40,43 +42,100 @@ function generateSteps(input) {
   const a = [...input];
   const out = [];
   const sorted = new Set();
+  const stack = [];
   let cmp = 0, swp = 0;
+  let maxDepth = 0;
+
+  const push = (step) => {
+    out.push({ cmp, swp, depth: stack.length, ...step, stack: stack.map((f) => ({ ...f })) });
+  };
 
   function qs(lo, hi) {
+    stack.push({ lo, hi });
+    if (stack.length > maxDepth) maxDepth = stack.length;
+    push({
+      type: 'call', arr: [...a], lo, hi, sorted: new Set(sorted),
+      msg: `📞 Gọi <strong>quick_sort(arr, ${lo}, ${hi})</strong> — đẩy frame lên call stack (độ sâu ${stack.length})`,
+      ps: 'ps1',
+    });
+
     if (lo >= hi) {
       if (lo === hi) sorted.add(lo);
+      push({
+        type: 'base', arr: [...a], lo, hi, sorted: new Set(sorted),
+        msg: lo === hi
+          ? `Điều kiện <code>lo &lt; hi</code> ⇒ <strong>${lo} &lt; ${hi}</strong> = <span class="no">false</span>. Vùng 1 phần tử, không vào thân if.`
+          : `Điều kiện <code>lo &lt; hi</code> ⇒ <strong>${lo} &lt; ${hi}</strong> = <span class="no">false</span>. Vùng rỗng, không vào thân if.`,
+        ps: 'ps2',
+      });
+      push({
+        type: 'return', arr: [...a], lo, hi, sorted: new Set(sorted),
+        msg: `↩️ <strong>quick_sort(arr, ${lo}, ${hi})</strong> kết thúc — pop khỏi stack`,
+        ps: '',
+      });
+      stack.pop();
       return;
     }
+
+    push({
+      type: 'partition_call', arr: [...a], lo, hi, sorted: new Set(sorted),
+      msg: `Điều kiện <code>lo &lt; hi</code> = <span class="ok">true</span> → gọi <strong>partition(arr, ${lo}, ${hi})</strong>`,
+      ps: 'ps3',
+    });
+
+    push({
+      type: 'partition_enter', arr: [...a], lo, hi, sorted: new Set(sorted),
+      msg: `Vào hàm <strong>partition(arr, ${lo}, ${hi})</strong>`,
+      ps: 'ps7',
+    });
+
     const hiVal = a[hi];
-    out.push({
+    push({
       type: 'pivot', arr: [...a], pivot: hi, lo, hi, sorted: new Set(sorted),
-      msg: `Vùng [<strong>${lo}..${hi}]</strong> — Chọn pivot = <strong>${hiVal}</strong> (arr[${hi}])`,
+      msg: `<code>pivot = arr[${hi}]</code> ⇒ pivot = <strong>${hiVal}</strong>`,
       ps: 'ps8',
     });
+
     let i = lo - 1;
+    push({
+      type: 'init_i', arr: [...a], pivot: hi, i, lo, hi, sorted: new Set(sorted),
+      msg: `<code>i = lo - 1</code> ⇒ i = <strong>${i}</strong> (ranh giới vùng ≤ pivot, ban đầu rỗng)`,
+      ps: 'ps9',
+    });
+
     for (let j = lo; j < hi; j++) {
+      push({
+        type: 'loop_iter', arr: [...a], pivot: hi, i, j, lo, hi, sorted: new Set(sorted),
+        msg: `<code>for j in range(${lo}, ${hi})</code> ⇒ j = <strong>${j}</strong>`,
+        ps: 'ps10',
+      });
       cmp++;
       const ok = a[j] <= hiVal;
-      out.push({
+      push({
         type: 'compare', arr: [...a], pivot: hi, i, j, lo, hi, sorted: new Set(sorted),
-        msg: `So sánh arr[<strong>${j}]=${a[j]}</strong> với pivot <strong>${hiVal}</strong>: ${ok ? '<span class="ok">✅ ≤ pivot → tiến i, swap</span>' : '<span class="no">❌ > pivot → bỏ qua</span>'}`,
-        ps: 'ps11', cmp, swp,
+        msg: `<code>if arr[${j}] &lt;= pivot</code> ⇒ <strong>${a[j]} ≤ ${hiVal}</strong> = ${ok ? '<span class="ok">true → tiến i, swap</span>' : '<span class="no">false → bỏ qua</span>'}`,
+        ps: 'ps11',
       });
       if (ok) {
         i++;
+        push({
+          type: 'inc', arr: [...a], pivot: hi, i, j, lo, hi, sorted: new Set(sorted),
+          msg: `<code>i += 1</code> ⇒ i = <strong>${i}</strong>`,
+          ps: 'ps12',
+        });
         if (i !== j) {
           swp++;
           [a[i], a[j]] = [a[j], a[i]];
-          out.push({
+          push({
             type: 'swap', arr: [...a], pivot: hi, i, j, lo, hi, sorted: new Set(sorted),
-            msg: `Swap arr[<strong>${i}]=${a[i]}</strong> ↔ arr[<strong>${j}]=${a[j]}</strong>`,
-            ps: 'ps13', cmp, swp,
+            msg: `<code>arr[${i}], arr[${j}] = arr[${j}], arr[${i}]</code> ⇒ arr[${i}]=<strong>${a[i]}</strong>, arr[${j}]=<strong>${a[j]}</strong>`,
+            ps: 'ps13',
           });
         } else {
-          out.push({
-            type: 'inc', arr: [...a], pivot: hi, i, j, lo, hi, sorted: new Set(sorted),
-            msg: `arr[${j}]=${a[j]} ≤ pivot → i tăng lên <strong>${i}</strong> (không cần swap)`,
-            ps: 'ps12', cmp, swp,
+          push({
+            type: 'swap_self', arr: [...a], pivot: hi, i, j, lo, hi, sorted: new Set(sorted),
+            msg: `<code>arr[${i}], arr[${j}] = arr[${j}], arr[${i}]</code> ⇒ i = j = ${i}, hoán đổi với chính nó (không đổi)`,
+            ps: 'ps13',
           });
         }
       }
@@ -85,23 +144,63 @@ function generateSteps(input) {
     swp++;
     [a[pi], a[hi]] = [a[hi], a[pi]];
     sorted.add(pi);
-    out.push({
+    push({
       type: 'place', arr: [...a], pivot: pi, lo, hi, sorted: new Set(sorted),
-      msg: `Đặt pivot <strong>${a[pi]}</strong> vào đúng vị trí <strong>${pi}</strong>. Trái ≤ ${a[pi]}, Phải ≥ ${a[pi]}`,
-      ps: 'ps14', cmp, swp,
+      msg: `<code>arr[i + 1], arr[hi] = arr[hi], arr[i + 1]</code> ⇒ đặt pivot <strong>${a[pi]}</strong> vào vị trí <strong>${pi}</strong>. Trái ≤ ${a[pi]}, Phải &gt; ${a[pi]}`,
+      ps: 'ps14',
+    });
+    push({
+      type: 'partition_return', arr: [...a], pivot: pi, lo, hi, sorted: new Set(sorted),
+      msg: `<code>return i + 1</code> ⇒ partition trả về <strong>${pi}</strong>`,
+      ps: 'ps15',
+    });
+
+    push({
+      type: 'rec_left', arr: [...a], pivot: pi, lo, hi, sorted: new Set(sorted),
+      msg: `Gọi đệ quy trái: <strong>quick_sort(arr, ${lo}, ${pi - 1})</strong>`,
+      ps: 'ps4',
     });
     qs(lo, pi - 1);
+
+    push({
+      type: 'rec_right', arr: [...a], pivot: pi, lo, hi, sorted: new Set(sorted),
+      msg: `Gọi đệ quy phải: <strong>quick_sort(arr, ${pi + 1}, ${hi})</strong>`,
+      ps: 'ps5',
+    });
     qs(pi + 1, hi);
+
+    push({
+      type: 'return', arr: [...a], lo, hi, sorted: new Set(sorted),
+      msg: `↩️ <strong>quick_sort(arr, ${lo}, ${hi})</strong> hoàn tất cả 2 nhánh — pop khỏi stack`,
+      ps: '',
+    });
+    stack.pop();
   }
 
   qs(0, a.length - 1);
   const finalSorted = new Set([...Array(a.length).keys()]);
-  out.push({
+  push({
     type: 'done', arr: [...a], sorted: finalSorted,
-    msg: '<span class="ok">✅ Mảng đã được sắp xếp hoàn toàn!</span>',
-    ps: '', cmp, swp,
+    msg: '<span class="ok">✅ Mảng đã được sắp xếp hoàn toàn! Call stack rỗng.</span>',
+    ps: '',
   });
+  out.maxDepth = maxDepth;
   return out;
+}
+
+function renderStack(step) {
+  const frames = step.stack || [];
+  if (frames.length === 0) {
+    el.stack.innerHTML = '<div class="stack-empty">Stack rỗng — chưa gọi hàm nào</div>';
+    return;
+  }
+  const items = [...frames].reverse().map((f, idx) => {
+    const isTop = idx === 0;
+    const label = step.lo === f.lo && step.hi === f.hi && isTop ? ' ← đang chạy' : '';
+    const tag = isTop ? '<span class="frame-tag">TOP</span>' : '';
+    return `<div class="frame${isTop ? ' active' : ''}">${tag}<span class="frame-sig">qs(${f.lo}, ${f.hi})</span><span class="frame-note">${label}</span></div>`;
+  }).join('');
+  el.stack.innerHTML = items + '<div class="stack-base">── đáy stack ──</div>';
 }
 
 function renderBars(step) {
@@ -133,6 +232,7 @@ function renderBars(step) {
   });
 
   el.stepInfo.innerHTML = step.msg || '';
+  renderStack(step);
 
   ALL_PS.forEach((id) => {
     const node = document.getElementById(id);
@@ -150,6 +250,10 @@ function renderBars(step) {
   el.statProg.textContent = pct + '%';
   if (step.cmp != null) el.statCmp.textContent = step.cmp;
   if (step.swp != null) el.statSwap.textContent = step.swp;
+  if (step.depth != null) {
+    const max = steps.maxDepth || 0;
+    el.statDepth.textContent = `${step.depth} / ${max}`;
+  }
 }
 
 function init(keepArr) {
@@ -163,6 +267,8 @@ function init(keepArr) {
   renderBars({
     arr: [...arr],
     sorted: new Set(),
+    stack: [],
+    depth: 0,
     msg: 'Mảng ban đầu. Nhấn <strong>Bước tiếp ▶</strong> để bắt đầu.',
     ps: '',
   });

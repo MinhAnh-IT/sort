@@ -42,9 +42,9 @@
     <div class="panel">
       <div class="panel-title">Biểu đồ mảng</div>
       <div id="bar-container" role="img" aria-label="Biểu đồ cột hiển thị mảng"></div>
-      <div style="height: 22px;"></div>
+      <div style="height: 30px;"></div>
       <div class="progress-wrap">
-        <span id="step-count" style="min-width:80px">Bước 0 / 0</span>
+        <span id="step-count" style="min-width:110px">Bước 0 / 0</span>
         <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
       </div>
     </div>
@@ -53,6 +53,13 @@
       <div class="panel-title">Trạng thái hiện tại</div>
       <div class="step-box" id="step-info" aria-live="polite">
         Nhấn <strong>Bước tiếp</strong> để bắt đầu từng bước, hoặc <strong>Chạy tự động</strong> để xem toàn bộ.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Call Stack <span class="panel-sub">(ngăn xếp đệ quy — frame mới nhất ở trên)</span></div>
+      <div id="call-stack" class="call-stack" aria-live="polite">
+        <div class="stack-empty">Stack rỗng — chưa gọi hàm nào</div>
       </div>
     </div>
 
@@ -95,23 +102,23 @@
   <aside class="right-panel" aria-label="Pseudocode và thông tin">
 
     <div class="panel">
-      <div class="panel-title">Pseudocode</div>
+      <div class="panel-title">Code: Quick Sort <span class="panel-sub">(Python)</span></div>
       <div class="pseudo-block">
-        <span class="pseudo-line" id="ps1"><span class="pseudo-kw">function</span> <span class="pseudo-fn">quickSort</span>(arr, lo, hi):</span>
-        <span class="pseudo-line" id="ps2">  <span class="pseudo-kw">if</span> lo &lt; hi:</span>
-        <span class="pseudo-line" id="ps3">    p = <span class="pseudo-fn">partition</span>(arr, lo, hi)</span>
-        <span class="pseudo-line" id="ps4">    <span class="pseudo-fn">quickSort</span>(arr, lo, p<span class="pseudo-num">-1</span>)</span>
-        <span class="pseudo-line" id="ps5">    <span class="pseudo-fn">quickSort</span>(arr, p<span class="pseudo-num">+1</span>, hi)</span>
-        <span class="pseudo-line" id="ps6">&nbsp;</span>
-        <span class="pseudo-line" id="ps7"><span class="pseudo-kw">function</span> <span class="pseudo-fn">partition</span>(arr, lo, hi):</span>
-        <span class="pseudo-line" id="ps8">  pivot = arr[hi] <span class="pseudo-cm">// chọn phần tử cuối</span></span>
-        <span class="pseudo-line" id="ps9">  i = lo <span class="pseudo-num">- 1</span>     <span class="pseudo-cm">// ranh giới vùng nhỏ</span></span>
-        <span class="pseudo-line" id="ps10">  <span class="pseudo-kw">for</span> j = lo <span class="pseudo-kw">to</span> hi<span class="pseudo-num">-1</span>:</span>
-        <span class="pseudo-line" id="ps11">    <span class="pseudo-kw">if</span> arr[j] &lt;= pivot:</span>
-        <span class="pseudo-line" id="ps12">      i++</span>
-        <span class="pseudo-line" id="ps13">      swap(arr[i], arr[j])</span>
-        <span class="pseudo-line" id="ps14">  swap(arr[i<span class="pseudo-num">+1</span>], arr[hi])</span>
-        <span class="pseudo-line" id="ps15">  <span class="pseudo-kw">return</span> i<span class="pseudo-num">+1</span></span>
+<span class="pseudo-line" id="ps1"><span class="pseudo-kw">def</span> <span class="pseudo-fn">quick_sort</span>(arr, lo, hi):</span>
+<span class="pseudo-line" id="ps2">    <span class="pseudo-kw">if</span> lo &lt; hi:</span>
+<span class="pseudo-line" id="ps3">        p = <span class="pseudo-fn">partition</span>(arr, lo, hi)</span>
+<span class="pseudo-line" id="ps4">        <span class="pseudo-fn">quick_sort</span>(arr, lo, p - <span class="pseudo-num">1</span>)</span>
+<span class="pseudo-line" id="ps5">        <span class="pseudo-fn">quick_sort</span>(arr, p + <span class="pseudo-num">1</span>, hi)</span>
+<span class="pseudo-line" id="ps6">&nbsp;</span>
+<span class="pseudo-line" id="ps7"><span class="pseudo-kw">def</span> <span class="pseudo-fn">partition</span>(arr, lo, hi):</span>
+<span class="pseudo-line" id="ps8">    pivot = arr[hi]                <span class="pseudo-cm"># chọn phần tử cuối</span></span>
+<span class="pseudo-line" id="ps9">    i = lo - <span class="pseudo-num">1</span>                     <span class="pseudo-cm"># ranh giới vùng ≤ pivot</span></span>
+<span class="pseudo-line" id="ps10">    <span class="pseudo-kw">for</span> j <span class="pseudo-kw">in</span> <span class="pseudo-fn">range</span>(lo, hi):</span>
+<span class="pseudo-line" id="ps11">        <span class="pseudo-kw">if</span> arr[j] &lt;= pivot:</span>
+<span class="pseudo-line" id="ps12">            i += <span class="pseudo-num">1</span></span>
+<span class="pseudo-line" id="ps13">            arr[i], arr[j] = arr[j], arr[i]</span>
+<span class="pseudo-line" id="ps14">    arr[i + <span class="pseudo-num">1</span>], arr[hi] = arr[hi], arr[i + <span class="pseudo-num">1</span>]</span>
+<span class="pseudo-line" id="ps15">    <span class="pseudo-kw">return</span> i + <span class="pseudo-num">1</span></span>
       </div>
     </div>
 
@@ -154,6 +161,10 @@
       <div class="stat-row">
         <span>Tổng bước</span>
         <span class="stat-val" id="stat-total">0</span>
+      </div>
+      <div class="stat-row">
+        <span>Độ sâu stack (hiện / max)</span>
+        <span class="stat-val" id="stat-depth">0 / 0</span>
       </div>
       <div class="stat-row">
         <span>Tiến độ</span>
