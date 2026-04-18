@@ -39,6 +39,7 @@ function randArr(n) {
   return a;
 }
 
+
 function generateSteps(input) {
   const a = [...input];
   const out = [];
